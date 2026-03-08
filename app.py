@@ -26,7 +26,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.documents import Document as LangchainDocument
 import uuid
- ChatPromptTemplate
+
 
 # --- Configuration ---
 FAISS_INDEX_PATH = "./local_faiss_index"
