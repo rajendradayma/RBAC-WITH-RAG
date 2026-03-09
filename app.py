@@ -114,20 +114,25 @@ def delete_document_from_index(file_id: str):
 
     chunk_ids_to_delete = manifest[file_id].get("chunk_ids", [])
     
+    # 1. Grab the file path BEFORE deleting it from the dictionary
+    file_name = manifest[file_id].get('name', '')
+    file_path = os.path.join(UPLOAD_DIR, file_name) if file_name else None
+    
     if os.path.exists(FAISS_INDEX_PATH):
         embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
         vectorstore = FAISS.load_local(FAISS_INDEX_PATH, embeddings, allow_dangerous_deserialization=True)
         
+        # Delete chunks from FAISS
         if chunk_ids_to_delete:
             vectorstore.delete(chunk_ids_to_delete)
             vectorstore.save_local(FAISS_INDEX_PATH)
         
+        # 2. Now it is safe to remove it from the manifest
         del manifest[file_id]
         save_manifest(manifest)
         
-        # Optional: delete the physical file too
-        file_path = os.path.join(UPLOAD_DIR, manifest.get(file_id, {}).get('name', ''))
-        if os.path.exists(file_path):
+        # 3. Finally, delete the physical file
+        if file_path and os.path.isfile(file_path):
             os.remove(file_path)
             
         return True
